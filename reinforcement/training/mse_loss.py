@@ -1,6 +1,5 @@
 import torch
-from .agent import Agent
-from .swarm import Swarm
+from ..communication import Swarm
 from .experience_buffer import Experience
 
 
@@ -51,50 +50,3 @@ def compute_swarm_loss(swarm: Swarm, experience: Experience, discount_rate: floa
         predicted_qvalues_for_actions - target_qvalues_for_actions.detach()) ** 2, dim = 0)
 
     return torch.mean(loss)
-
-
-def compute_loss(agent: Agent, e: Experience, discount_rate: float = 0.99):
-
-    gamma = discount_rate
-
-    states, actions, rewards, next_states, is_done = \
-        (e.states, e.actions, e.rewards, e.next_states, e.is_done)
-    
-    batch_size, agent_size, v, v, f = states.shape
-    states = states[:,agent.index,].reshape((batch_size, v*v*f))
-
-    actions = actions[:,agent.index,]
-    rewards = rewards[:,agent.index,]
-
-    next_states = next_states[:,agent.index,].reshape((batch_size, v*v*f))
-
-    states = torch.tensor(states, dtype=torch.float32)    # shape: [batch_size, *state_shape]
-    actions = torch.tensor(actions, dtype=torch.int64)    # shape: [batch_size]
-    rewards = torch.tensor(rewards, dtype=torch.float32)  # shape: [batch_size]
-
-    # shape: [batch_size, *state_shape]
-    next_states = torch.tensor(next_states, dtype=torch.float32)
-
-    is_done = torch.tensor(is_done, dtype=torch.uint8)
-
-    # get q-values for all actions in current states
-    predicted_qvalues = agent.policy(states)  # shape: [batch_size, n_actions]
-
-    # compute q-values for all actions in next states
-    predicted_next_qvalues = agent.target(next_states)  # shape: [batch_size, n_actions]
-
-    # select q-values for chosen actions # shape: [batch_size]
-    predicted_qvalues_for_actions = predicted_qvalues[range(len(actions)), actions]
-
-    # compute v(next_states) using predicted next q-values
-    next_state_values = torch.max(predicted_next_qvalues, dim = -1)[0]
-
-    target_qvalues_for_actions = rewards + gamma * next_state_values
-
-    target_qvalues_for_actions = torch.where(
-        is_done, rewards, target_qvalues_for_actions)
-
-    loss = torch.mean((
-        predicted_qvalues_for_actions - target_qvalues_for_actions.detach()) ** 2)
-
-    return loss

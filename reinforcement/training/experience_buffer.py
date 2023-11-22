@@ -30,14 +30,8 @@ class ExperienceBuffer:
         return len(self._storage)
     
     def is_valid(self, playground):
+        #TODO
         return True
-        # if len(buffer) == 0:
-        #         return True
-            
-        # states, actions, _ = buffer.sample(batch_size = 1)
-        # space_shape = self.environment.observation_space.shape
-        # n_actions = self.environment.action_space.nvec[0]
-        # return (space_shape == states[0].shape and actions[0] in list(range(n_actions)))
 
     def warm_up(self, pg):
         state = pg.new_game()

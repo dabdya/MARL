@@ -1,9 +1,9 @@
-from .swarm import Swarm
+from ..communication import Swarm
 from .experience_buffer import ExperienceBuffer
 
-from typing import List
 import numpy as np
 import gymnasium as gym
+from typing import List
 
 
 class PlayGround:

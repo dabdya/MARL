@@ -1,12 +1,6 @@
-import torch
-import torch.nn as nn
-
 import numpy as np
+import torch.nn as nn
 from copy import deepcopy
-
-
-from ..policy.policy_factory import Policy
-
 
 
 class Agent:
@@ -33,7 +27,6 @@ class Agent:
         self._target_policy.load_state_dict(self._policy.state_dict())
             
     def get_qvalues(self, states):
-        # states = torch.tensor(np.array(states), dtype = torch.float32)
         qvalues = self._policy(states)
         return qvalues.data.cpu().numpy()
     
