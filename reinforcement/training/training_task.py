@@ -1,11 +1,10 @@
 import torch.optim as optim
-import numpy as np
-from .mse_loss import compute_loss, compute_swarm_loss
-from typing import Dict
+from .mse_loss import compute_swarm_loss
 
 from .play_ground import PlayGround
 from .experience_buffer import ExperienceBuffer
 
+from typing import Dict
 from tqdm import trange
 
 

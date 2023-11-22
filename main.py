@@ -1,6 +1,6 @@
 from reinforcement.training import TrainingTask, PlayGround
-from reinforcement.training import NoCommunication, ShareObservation, IC3Net
-from reinforcement.policy import Policy, PolicyFactory, SimpleFullyConnected
+from reinforcement.communication import NoCommunication, SharePolicy, IC3Net
+from reinforcement.policy import PolicyFactory, SimpleFullyConnected
 from reinforcement.training import Agent
 
 from argparse import ArgumentParser
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         #     Agent(0, factory.get_policy(SimpleFullyConnected)),
         #     Agent(1, factory.get_policy(SimpleFullyConnected)),
         # ]),
-        # ShareObservation([
+        # SharePolicy([
         #     Agent(0, factory.get_policy(SimpleFullyConnected)),
         #     Agent(1, factory.get_policy(SimpleFullyConnected)),
         # ])
