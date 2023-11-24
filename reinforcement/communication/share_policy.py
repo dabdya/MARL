@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 
 from reinforcement.training import Agent
+from collections import Counter
 from .swarm import Swarm
 
 
@@ -20,9 +21,15 @@ class SharePolicy(Swarm):
                 for agent in self.squad
             }
 
-            best_agent = sorted(state_values.items(), key = lambda x: x[1])[-1][0]
-            qvalues = best_agent.get_qvalues(swarm_states[:,i])
-            actions[i] = best_agent.sample_actions(qvalues)
+            best_agents = sorted(state_values.items(), key = lambda x: x[1])
+            best_agents = best_agents[-self.best_neighbours:]
+
+            best_actions = Counter([
+                agent.sample_actions(agent.get_qvalues(swarm_states[:,i]))
+                for agent, state_value in best_agents
+            ])
+
+            actions[i] = best_actions.most_common()[0][0]
 
         return actions
     
