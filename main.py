@@ -1,6 +1,7 @@
-from reinforcement.training import Agent, TrainingTask, PlayGround
+from reinforcement.training import TrainingTask, PlayGround
 from reinforcement.policy import PolicyFactory, SimpleFullyConnected
-from reinforcement.communication import NoCommunication, SharePolicy, IC3Net
+from reinforcement.communication import NoCommunication, SharePolicy, IC3NetBased
+from reinforcement.communication.core import Agent
 
 from environments import PredatorPreyEnv
 from environments.utils import initizalize_env
@@ -33,13 +34,19 @@ if __name__ == "__main__":
     state_dim = np.prod(env.observation_space.shape)
     n_actions = env.action_space.nvec.item()
 
-    factory = PolicyFactory(state_dim, n_actions, hidden_size = 64)
-    # factory = PolicyFactory(128, n_actions, hidden_size = 64)
+    # factory = PolicyFactory(state_dim, n_actions, hidden_size = 64)
+    factory = PolicyFactory(128, n_actions, hidden_size = 64)
+
+    # swarms = [
+    #     # SharePolicy([
+    #     #     Agent(index, factory.get_policy(SimpleFullyConnected))
+    #     #     for index in range(3)], best_neighbours = 3)
+    # ]
 
     swarms = [
-        SharePolicy([
-            Agent(index, factory.get_policy(SimpleFullyConnected)) 
-            for index in range(3)], best_neighbours = 3)
+        IC3NetBased([
+            Agent(index, factory.get_policy(SimpleFullyConnected))
+            for index in range(3)], state_dim, hidden_size=128)
     ]
     pg = PlayGround(env, swarms)
 

@@ -1,9 +1,8 @@
-from typing import List, Tuple
+from typing import List
 import numpy as np
 
-from reinforcement.training import Agent
+from .core import Agent, Swarm
 from collections import Counter
-from .swarm import Swarm
 
 
 class SharePolicy(Swarm):
@@ -12,7 +11,7 @@ class SharePolicy(Swarm):
         self.best_neighbours = best_neighbours
 
     def get_action(self, swarm_state: np.array) -> np.array:
-        swarm_states = super().transfrom_states(np.array([swarm_state]))
+        swarm_states = super().transform_states(np.array([swarm_state]))
         actions = np.zeros(shape = self.size)
 
         for i in range(self.size):

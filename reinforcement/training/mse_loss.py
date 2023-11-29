@@ -1,5 +1,5 @@
 import torch
-from ..communication import Swarm
+from ..communication.core import Swarm
 from .experience_buffer import Experience
 
 
@@ -10,12 +10,12 @@ def compute_swarm_loss(swarm: Swarm, experience: Experience, discount_rate: floa
 
     # shape: [batch_size, n_swarm_agents, encoded_state_size]
     # print(states.shape)
-    states = swarm.transfrom_states(states[:,swarm.agent_indexes])
-    next_states = swarm.transfrom_states(next_states[:,swarm.agent_indexes])
+    states = swarm.transform_states(states[:,swarm.indexes])
+    next_states = swarm.transform_states(next_states[:,swarm.indexes])
     
     # shape: [batch_size, n_swarm_agents]
-    actions = torch.tensor(actions[:,swarm.agent_indexes], dtype = torch.int64)    
-    rewards = torch.tensor(rewards[:,swarm.agent_indexes], dtype = torch.float32)
+    actions = torch.tensor(actions[:,swarm.indexes], dtype = torch.int64)
+    rewards = torch.tensor(rewards[:,swarm.indexes], dtype = torch.float32)
     
     # shape: [batch_size, 1]
     is_done = torch.tensor(is_done, dtype = torch.uint8)
@@ -24,11 +24,11 @@ def compute_swarm_loss(swarm: Swarm, experience: Experience, discount_rate: floa
     # shape: [batch_size, n_swarm_agents, n_actions]
     # print(states.shape)
     predicted_qvalues = torch.stack([
-        agent.policy(states[:,agent.index]) for agent in swarm.squad], dim = 1)
+        agent.policy(states[:,i]) for i, agent in enumerate(swarm.squad)], dim = 1)
 
     # shape: [batch_size, n_swarm_agents, n_actions]
     predicted_next_qvalues = torch.stack([
-        agent.target(next_states[:,agent.index]) for agent in swarm.squad], dim = 1)
+        agent.target(next_states[:,i]) for i, agent in enumerate(swarm.squad)], dim = 1)
 
     # select q-values for chosen actions 
     # shape: [batch_size, n_swarm_agents]

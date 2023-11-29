@@ -14,6 +14,7 @@ class Experience:
     
     def __next__(self):
         if self.__pointer >= len(self._experience):
+            self.__pointer = 0
             raise StopIteration
         output = self._experience[self.__pointer]
         self.__pointer += 1
@@ -64,7 +65,6 @@ class ExperienceBuffer:
             rewards.append(reward)
             next_states.append(next_state)
             dones.append(done)
-
 
         return Experience(
             np.array(states),

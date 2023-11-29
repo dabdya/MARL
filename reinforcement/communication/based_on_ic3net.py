@@ -1,6 +1,6 @@
-from .swarm import Swarm
-from .models.ic3net import IC3Network
-from ..training.agent import Agent
+from reinforcement.communication.core.swarm import Swarm
+from .models import IC3Network
+from reinforcement.communication.core.agent import Agent
 
 from .no_communication import NoCommunication
 
@@ -8,31 +8,27 @@ import numpy as np
 from typing import List
 import torch
 
-class IC3Net(Swarm):
+
+class IC3NetBased(Swarm):
     def __init__(self, squad: List[Agent], state_size: int, hidden_size: int = 128):
-        super(IC3Net, self).__init__(squad)
-        self.ic3net = IC3Network(
-            state_size, n_agents = self.size, hidden_size = hidden_size)
+        super(IC3NetBased, self).__init__(squad)
+        self.ic3net = IC3Network(state_size, self.size, hidden_size)
+        self.communication_tensor = torch.zeros(self.size, hidden_size)
+        self.hidden_state = torch.randn(self.size, hidden_size)
+        self.cell_state = torch.randn(self.size, hidden_size)
 
-        self.communication_vectors = torch.zeros(1, self.size, hidden_size)
-        self.hidden_state = torch.randn(1, self.size, hidden_size)
-        self.cell_state = torch.randn(1, self.size, hidden_size)
-
-    def transfrom_states(self, swarm_states: np.array) -> torch.Tensor:
-        swarm_states = super(IC3Net, self).transfrom_states(swarm_states)
-
-        _, (hidden_states, _) = self.ic3net(
-            swarm_states, self.communication_vectors, self.hidden_state, self.cell_state)
-        
+    def transform_states(self, swarm_states: np.array) -> torch.Tensor:
+        swarm_states = super().transform_states(swarm_states)
+        transfer_data = self.hidden_state, self.cell_state, self.communication_tensor
+        hidden_states, *_ = self.ic3net(swarm_states, *transfer_data)
         return hidden_states
-    
+
     def get_action(self, swarm_state: np.array):
-        swarm_states = super(IC3Net, self).transfrom_states(np.array([swarm_state]))
+        swarm_states = super().transform_states(np.array([swarm_state]))
+        transfer_data = self.hidden_state, self.cell_state, self.communication_tensor
+        hidden_state, cell_state, communication_tensor = self.ic3net(swarm_states, *transfer_data)
 
-        communication_vectors, (hidden_state, cell_state) = self.ic3net(
-            swarm_states, self.communication_vectors, self.hidden_state, self.cell_state)
-
-        self.communication_vectors = communication_vectors.detach()
+        self.communication_tensor = communication_tensor.detach()
         self.hidden_state, self.cell_state = hidden_state.detach(), cell_state.detach()
 
-        return NoCommunication(self.squad).get_action(self.hidden_state.numpy()[0])
+        return NoCommunication(self.squad).get_action(self.hidden_state.numpy())
