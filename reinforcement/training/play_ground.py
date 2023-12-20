@@ -8,19 +8,19 @@ from typing import List
 
 class PlayGround:
     def __init__(self, environment: gym.Env, swarms: List[Swarm] = None):
-        self._swarms = swarms
-        self._environment = environment
-
-    @property
-    def agents(self):
-        return [agent for swarn in self._swarms for agent in swarn.squad]
-
-    def new_game(self):
-        return self._environment.reset()
+        self.environment = environment
+        self.swarms = swarms
 
     @property
     def is_over(self):
-        return self._environment.episode_over
+        return self.environment.episode_over
+
+    @property
+    def agents(self):
+        return [agent for swarm in self.swarms for agent in swarm.squad]
+
+    def new_game(self):
+        return self.environment.reset()
 
     def play_game(self, start_state: np.array, buffer: ExperienceBuffer = None, n_steps: int = 1000):
 
@@ -30,13 +30,13 @@ class PlayGround:
         for _ in range(n_steps):
 
             action = self.get_action(state)
-            next_state, reward, is_done, _ = self._environment.step(action)
+            next_state, reward, is_done, _ = self.environment.step(action)
 
             buffer.add(state, action, reward, next_state, is_done)
 
             total_reward += reward
             if is_done:
-                state = self._environment.reset()
+                state = self.environment.reset()
             else:
                 state = next_state
 
@@ -46,11 +46,11 @@ class PlayGround:
 
         rewards = []
         for _ in range(n_games):
-            state = self._environment.reset()
+            state = self.environment.reset()
             total_reward = 0
             for _ in range(n_steps):
                 action = self.get_action(state)
-                new_state, reward, is_done, *_ = self._environment.step(action)
+                new_state, reward, is_done, *_ = self.environment.step(action)
 
                 total_reward += reward
                 if is_done:
@@ -67,7 +67,7 @@ class PlayGround:
         n_agents, *_ = environment_state.shape
         actions = np.zeros(n_agents)
 
-        for swarm in self._swarms:
+        for swarm in self.swarms:
             agent_indexes = [agent.index for agent in swarm.squad]
             swarm_state = environment_state[agent_indexes,]
             actions[agent_indexes,] = swarm.get_action(swarm_state)

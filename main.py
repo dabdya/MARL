@@ -1,60 +1,57 @@
-from reinforcement.training import TrainingTask, PlayGround
+from reinforcement.training import TrainingTask, TrainingConfig, PlayGround
 from reinforcement.policy import PolicyFactory, SimpleFullyConnected
-from reinforcement.communication import NoCommunication, SharePolicy, IC3NetBased
+
+from reinforcement.communication import IC3NetBased, ShareState, SharePolicy
 from reinforcement.communication.core import Agent
+from reinforcement.communication.aggregation import ValueBasedAggregation, RandomAggregation
+from reinforcement.communication.utils import generate_communication_matrix
 
 from environments import PredatorPreyEnv
-from environments.utils import initizalize_env
-from reinforcement.training.utils import load_config
-
-from argparse import ArgumentParser
-from pathlib import Path
+from environments.adapter import init_environment, EnvironmentMode
 import numpy as np
 
-
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
-def get_args():
-    parser = ArgumentParser()
-    parser.add_argument(
-        "--config", required = False, type = Path, 
-        default = Path("./reinforcement/training/settings.yaml"))
-    return parser.parse_args()
-
-
 if __name__ == "__main__":
-    args = get_args()
-    config = load_config(args.config)
+
+    config = TrainingConfig()
 
     env = PredatorPreyEnv()
-    initizalize_env(env, n_predators = 3, mode = "cooperative")
+    init_environment(env, dim=5, n_predators=5, mode=EnvironmentMode.Cooperative)
 
     state_dim = np.prod(env.observation_space.shape)
     n_actions = env.action_space.nvec.item()
 
-    # factory = PolicyFactory(state_dim, n_actions, hidden_size = 64)
-    factory = PolicyFactory(128, n_actions, hidden_size = 64)
+    factory = PolicyFactory(state_dim, n_actions, hidden_size=64)
+    # factory = PolicyFactory(128, n_actions, hidden_size=64)
+
+    communication_matrix = generate_communication_matrix(5)
 
     # swarms = [
-    #     # SharePolicy([
-    #     #     Agent(index, factory.get_policy(SimpleFullyConnected))
-    #     #     for index in range(3)], best_neighbours = 3)
+    #     ShareState(squad=[
+    #         Agent(index, factory.get_policy(SimpleFullyConnected))
+    #         for index in range(5)], communication_matrix=communication_matrix, best_neighbors=3)
     # ]
 
     swarms = [
-        IC3NetBased([
+        SharePolicy(squad=[
             Agent(index, factory.get_policy(SimpleFullyConnected))
-            for index in range(3)], state_dim, hidden_size=128)
+            for index in range(5)],
+            communication_matrix=communication_matrix, neighbors_depth=2, aggregation=ValueBasedAggregation())
     ]
+
+    # swarms = [
+    #     IC3NetBased([
+    #         Agent(index, factory.get_policy(SimpleFullyConnected))
+    #         for index in range(5)], state_dim, hidden_size=128)
+    # ]
     pg = PlayGround(env, swarms)
 
     training_task = TrainingTask(pg, config)
     training_task.run()
 
-    loss, reward = training_task.get_report()
-    import pandas as pd
+    report = training_task.get_report()
 
-    pd.Series(loss).to_csv("loss.csv", header = None)
-    pd.Series(reward).to_csv("reward.csv", header = None)

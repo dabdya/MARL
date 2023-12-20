@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List, Tuple
+from typing import List
 
 from ..communication.core import Swarm
 from .utils import smooth

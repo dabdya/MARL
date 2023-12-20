@@ -10,8 +10,18 @@ class Swarm(abc.ABC):
     """
     An abstract class through which a new swarm type can be defined by inheritance.
     """
-    def __init__(self, squad: List[Agent]):
+    def __init__(self, squad: List[Agent], communication_matrix: List[List[int]] = None):
         self._squad = squad
+
+        self.adjacency_list = []
+        if communication_matrix is not None:
+            for internal_index, agent in enumerate(squad):
+                neighbors_indexes = [
+                    index
+                    for index, link in enumerate(communication_matrix[internal_index])
+                    if link and internal_index != index
+                ]
+                self.adjacency_list.append(neighbors_indexes)
 
     @property
     def squad(self) -> List[Agent]:

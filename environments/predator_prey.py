@@ -14,6 +14,8 @@ Design Decisions:
     - Rewards -0.05 at each time step till the time
     - Episode never ends
     - Obs. State: Vocab of 1-hot < predator, preys & units >
+
+Source: https://github.com/IC3Net/IC3Net/blob/master/ic3net-envs/ic3net_envs/predator_prey_env.py
 """
 
 # core modules
@@ -42,7 +44,7 @@ class PredatorPreyEnv(gym.Env):
         self.POS_PREY_REWARD = 0.05
         self.episode_over = False
 
-        self.action_space = spaces.Space()
+        self.action_space = spaces.MultiDiscrete([5])
         self.observation_space = spaces.Space()
 
     def init_curses(self):

@@ -10,8 +10,8 @@ import torch
 
 
 class IC3NetBased(Swarm):
-    def __init__(self, squad: List[Agent], state_size: int, hidden_size: int = 128):
-        super(IC3NetBased, self).__init__(squad)
+    def __init__(self, state_size: int, hidden_size: int, *args, **kwargs):
+        super(IC3NetBased, self).__init__(*args, **kwargs)
         self.ic3net = IC3Network(state_size, self.size, hidden_size)
         self.communication_tensor = torch.zeros(self.size, hidden_size)
         self.hidden_state = torch.randn(self.size, hidden_size)
@@ -31,4 +31,5 @@ class IC3NetBased(Swarm):
         self.communication_tensor = communication_tensor.detach()
         self.hidden_state, self.cell_state = hidden_state.detach(), cell_state.detach()
 
-        return NoCommunication(self.squad).get_action(self.hidden_state.numpy())
+        return NoCommunication(
+            squad=self.squad).get_action(self.hidden_state.numpy())
